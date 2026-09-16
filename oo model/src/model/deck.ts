@@ -20,7 +20,9 @@ export interface WildCard {
   readonly type: 'WILD' | 'WILD DRAW'
 }
 
-export type Card = NumberedCard | ColoredActionCard | WildCard
+export type ColoredCard = NumberedCard | ColoredActionCard
+
+export type Card = ColoredCard | WildCard
 
 export type TypedCard<T extends Type> =
   T extends 'NUMBERED' ? NumberedCard :

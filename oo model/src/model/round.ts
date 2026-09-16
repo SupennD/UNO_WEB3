@@ -334,26 +334,25 @@ export type NewRoundProps = {
 export function newRound({ players, dealer, shuffler = standardShuffler, cardsPerPlayer = 7 }: NewRoundProps): Round {
   if (players.length < 2 || players.length > 10) throw new Error('A round requires between 2 and 10 players')
 
-  let handCards: Card[][] = []
-  let drawCards: Card[] = []
-  let topCard: Card
+  const deck = buildFullCardSet()
+  shuffler(deck)
 
-  for (;;) {
-    const deck = buildFullCardSet()
-    shuffler(deck)
-    handCards = []
-    let cursor = 0
-    for (let p = 0; p < players.length; p++) {
-      handCards.push(deck.slice(cursor, cursor + cardsPerPlayer))
-      cursor += cardsPerPlayer
-    }
-    topCard = deck[cursor]
-    cursor += 1
-    if (topCard.type !== 'WILD' && topCard.type !== 'WILD DRAW') {
-      drawCards = deck.slice(cursor)
-      break
-    }
+  const handCards: Card[][] = []
+  let cursor = 0
+  for (let p = 0; p < players.length; p++) {
+    handCards.push(deck.slice(cursor, cursor + cardsPerPlayer))
+    cursor += cardsPerPlayer
   }
+
+  // The rest of the deck forms the discard pile's first card (its top) plus
+  // the draw pile. If that top card is a Wild or Wild Draw 4, it is returned
+  // to this remainder and reshuffled until a non-wild card comes up top.
+  const remainder = deck.slice(cursor)
+  while (remainder[0].type === 'WILD' || remainder[0].type === 'WILD DRAW') {
+    shuffler(remainder)
+  }
+  const topCard = remainder[0]
+  const drawCards = remainder.slice(1)
 
   const n = players.length
   let direction: Direction = 'clockwise'
